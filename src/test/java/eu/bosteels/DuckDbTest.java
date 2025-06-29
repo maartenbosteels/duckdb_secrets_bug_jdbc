@@ -8,12 +8,14 @@ public class DuckDbTest {
 
     @Test
     public void readSecrets() throws SQLException {
+        // this works
         Connection conn = DriverManager.getConnection("jdbc:duckdb:");
         readSecrets(conn);
     }
 
     @Test
-    public void setVariable() throws SQLException {
+    public void setVariable_v0() throws SQLException {
+        // this works
         Connection conn = DriverManager.getConnection("jdbc:duckdb:");
         setVariable(conn);
         readVariable(conn);
@@ -23,6 +25,7 @@ public class DuckDbTest {
     public void readSecretsAndSetVariable() throws SQLException {
         Connection conn = DriverManager.getConnection("jdbc:duckdb:");
         readSecrets(conn);
+        // this fails
         setVariable(conn);
         readVariable(conn);
     }
@@ -35,7 +38,8 @@ public class DuckDbTest {
         readItems(conn);
         setVariable(conn);
         readVariable(conn);
-       // readSecrets(conn);
+        // This test fails when we uncomment the next line
+        //readSecrets(conn);
         setVariable(conn);
     }
 
@@ -99,37 +103,22 @@ public class DuckDbTest {
 
     @Test
     public void setVariable_v1() throws SQLException {
+        // this test succeeds
         Connection conn = DriverManager.getConnection("jdbc:duckdb:");
         PreparedStatement preparedStatement = conn.prepareStatement("set variable my_var = ?");
         preparedStatement.setString(1, "my value");
         preparedStatement.execute();
         System.out.println("setVariable done");
-    }
-
-    @Test
-    public void setVariable_v4() throws SQLException {
-        Connection conn = DriverManager.getConnection("jdbc:duckdb:");
-        PreparedStatement preparedStatement = conn.prepareStatement("set variable my_var = ?");
-        preparedStatement.setString(1, "my value");
-        preparedStatement.execute();
-        System.out.println("setVariable done");
-        try (Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery("SELECT getvariable('my_var') as my_var")) {
-            while (rs.next()) {
-                String my_var = rs.getString("my_var");
-                System.out.printf("my_var=%s %n", my_var);
-            }
-        }
+        readVariable(conn);
     }
 
     @Test
     public void setVariable_v2() throws SQLException {
+        // this fails
         Connection conn = DriverManager.getConnection("jdbc:duckdb:");
         System.out.println("connected");
-        //conn.createStatement().execute("CREATE or replace PERSISTENT SECRET (TYPE postgres, HOST 'localhost', database 'anything', user 'anyone', password 'youchoose')");
         conn.createStatement().execute("CREATE or replace PERSISTENT SECRET (TYPE postgres)");
         System.out.println("secret created");
-        conn.createStatement().executeQuery("SELECT * FROM duckdb_secrets()");
-        System.out.println("SELECT * FROM duckdb_secrets() done");
         PreparedStatement preparedStatement = conn.prepareStatement("set variable my_var = ?");
         System.out.println("stmt prepared");
         preparedStatement.setString(1, "my value");
@@ -140,13 +129,24 @@ public class DuckDbTest {
 
     @Test
     public void setVariable_v3() throws SQLException {
+        // this fails
         Connection conn = DriverManager.getConnection("jdbc:duckdb:");
         conn.createStatement().execute("CREATE or replace PERSISTENT SECRET (TYPE postgres, HOST 'localhost', database 'anything', user 'anyone', password 'youchoose')");
-        //conn.createStatement().execute("CREATE or replace PERSISTENT SECRET (TYPE postgres)");
-        //conn.createStatement().executeQuery("SELECT * FROM duckdb_secrets()");
         PreparedStatement preparedStatement = conn.prepareStatement("set variable my_var = ?");
         preparedStatement.setString(1, "my value");
         preparedStatement.execute();
+    }
+
+
+    @Test
+    public void setVariable_v4() throws SQLException {
+        // this works
+        Connection conn = DriverManager.getConnection("jdbc:duckdb:");
+        PreparedStatement preparedStatement = conn.prepareStatement("set variable my_var = ?");
+        preparedStatement.setString(1, "my value");
+        preparedStatement.execute();
+        System.out.println("setVariable done");
+        readVariable(conn);
     }
 
 }
